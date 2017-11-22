@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">FindRoute</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="webapi">AIzaSyAvdZSBRLrfrcdK9vksWTG-sVMyPrf85J4</string>
+</resources>
