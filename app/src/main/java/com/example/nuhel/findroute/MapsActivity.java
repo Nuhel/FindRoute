@@ -44,8 +44,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     double foundlatitude = 0;
     double foundlongitude = 0;
     int flag = 0;
+    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
     private boolean mLocationPermissionGranted = true;
+    private boolean isf = true;
 
 
     @Override
@@ -59,150 +61,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, new LocationListener() {
-                @Override
-                public void onLocationChanged(Location location) {
-                    double latitude = location.getLatitude();
-                    double longitude = location.getLongitude();
-                    foundlatitude = latitude;
-                    foundlongitude = longitude;
-                    LatLng latLng = new LatLng(latitude, longitude);
+        getLocationPermission();
+       // getCurrentLocation();
 
-
-                    LatLng latLng1 = new LatLng(24.9013304,91.8437259);
-
-
-                    if (mLocationPermissionGranted) {
-                        ReadTask downloadTask = new ReadTask();
-                        mLocationPermissionGranted = false;
-                        Object obj[] = new Object[3];
-                        obj[0] = getMapsApiDirectionsUrl(latLng, latLng1);
-                        obj[1] = getBaseContext();
-                        obj[2] = mMap;
-
-                        // Start downloading json data from Google Directions API
-                        downloadTask.execute(obj);
-                    }
-
-
-                    Geocoder geocoder = new Geocoder(getApplicationContext());
-                    try {
-                        float zoom;
-                        if (flag == 0) {
-                            flag = 1;
-                            zoom = 10;
-                            List<Address> addressList = geocoder.getFromLocation(latitude, longitude, 1);
-                            String str = addressList.get(0).getLocality() + ",";
-                            str += addressList.get(0).getCountryName();
-                            mMap.addMarker(new MarkerOptions().position(latLng).title(str));
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
-
-                        } else {
-                            zoom = mMap.getCameraPosition().zoom;
-                        }
-
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-
-                @Override
-                public void onStatusChanged(String provider, int status, Bundle extras) {
-
-                }
-
-                @Override
-                public void onProviderEnabled(String provider) {
-
-                }
-
-                @Override
-                public void onProviderDisabled(String provider) {
-
-                }
-            });
-        } else if ((locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, new LocationListener() {
-                @Override
-                public void onLocationChanged(Location location) {
-                    double latitude = location.getLatitude();
-                    double longitude = location.getLongitude();
-                    LatLng latLng = new LatLng(latitude, longitude);
-
-                    LatLng latLng1 = new LatLng(24.9013304,91.8437259);
-
-                    if (mLocationPermissionGranted) {
-                        ReadTask downloadTask = new ReadTask();
-                        mLocationPermissionGranted = false;
-                        Object obj[] = new Object[3];
-                        obj[0] = getMapsApiDirectionsUrl(latLng, latLng1);
-                        obj[1] = getBaseContext();
-                        obj[2] = mMap;
-
-                        // Start downloading json data from Google Directions API
-                        downloadTask.execute(obj);
-                    }
-
-
-                    Geocoder geocoder = new Geocoder(getApplicationContext());
-                    try {
-                        List<Address> addressList = geocoder.getFromLocation(latitude, longitude, 1);
-                        String str = addressList.get(0).getLocality() + ",";
-                        str += addressList.get(0).getCountryName();
-                        mMap.addMarker(new MarkerOptions().position(latLng).title(str));
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-
-                @Override
-                public void onStatusChanged(String provider, int status, Bundle extras) {
-
-                }
-
-                @Override
-                public void onProviderEnabled(String provider) {
-
-                }
-
-                @Override
-                public void onProviderDisabled(String provider) {
-
-                }
-            });
-        }
 
     }
-
-    private void getLocationPermission() {
-
-
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mLocationPermissionGranted = true;
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    1);
-        }
-    }
-
 
     private String getMapsApiDirectionsUrl(LatLng origin, LatLng dest) {
         // Origin of route
@@ -232,27 +95,172 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    private void getCurrentLocation() {
-
-    }
-
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
-        // LatLng sydney = new LatLng(-34, 151);
-        // mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney,10.2f));
+        Toast.makeText(this, "onMapReady", Toast.LENGTH_SHORT).show();
+
     }
+
+
+    private void getLocationPermission() {
+
+         if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mLocationPermissionGranted = true;
+            getCurrentLocation();
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
+        mLocationPermissionGranted = false;
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mLocationPermissionGranted = true;
+                    getCurrentLocation();
+                }
+            }
+        }
+    }
+
+
+    private void getCurrentLocation() {
+
+
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED)
+
+            if ((locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER))) {
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, new LocationListener() {
+                    @Override
+                    public void onLocationChanged(Location location) {
+                        double latitude = location.getLatitude();
+                        double longitude = location.getLongitude();
+                        foundlatitude = latitude;
+                        foundlongitude = longitude;
+                        LatLng latLng = new LatLng(latitude, longitude);
+
+
+                        LatLng latLng1 = new LatLng(24.9013304, 91.8437259);
+
+
+                        if (isf) {
+                            ReadTask downloadTask = new ReadTask();
+                            isf = false;
+                            Object obj[] = new Object[3];
+                            obj[0] = getMapsApiDirectionsUrl(latLng, latLng1);
+                            obj[1] = getBaseContext();
+                            obj[2] = mMap;
+
+                            // Start downloading json data from Google Directions API
+                            downloadTask.execute(obj);
+                        }
+
+
+                        Geocoder geocoder = new Geocoder(getApplicationContext());
+                        try {
+                            float zoom;
+                            if (flag == 0) {
+                                flag = 1;
+                                zoom = 10;
+                                List<Address> addressList = geocoder.getFromLocation(latitude, longitude, 1);
+                                String str = addressList.get(0).getLocality() + ",";
+                                str += addressList.get(0).getCountryName();
+                                mMap.addMarker(new MarkerOptions().position(latLng).title(str));
+                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+
+                            } else {
+                                zoom = mMap.getCameraPosition().zoom;
+                            }
+
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+
+                    @Override
+                    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+                    }
+
+                    @Override
+                    public void onProviderEnabled(String provider) {
+
+                    }
+
+                    @Override
+                    public void onProviderDisabled(String provider) {
+
+                    }
+                });
+            } else if ((locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))) {
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, new LocationListener() {
+                    @Override
+                    public void onLocationChanged(Location location) {
+                        double latitude = location.getLatitude();
+                        double longitude = location.getLongitude();
+                        LatLng latLng = new LatLng(latitude, longitude);
+
+                        LatLng latLng1 = new LatLng(24.9013304, 91.8437259);
+
+                        if (mLocationPermissionGranted) {
+                            ReadTask downloadTask = new ReadTask();
+                            mLocationPermissionGranted = false;
+                            Object obj[] = new Object[3];
+                            obj[0] = getMapsApiDirectionsUrl(latLng, latLng1);
+                            obj[1] = getBaseContext();
+                            obj[2] = mMap;
+
+                            // Start downloading json data from Google Directions API
+                            downloadTask.execute(obj);
+                        }
+
+
+                        Geocoder geocoder = new Geocoder(getApplicationContext());
+                        try {
+                            List<Address> addressList = geocoder.getFromLocation(latitude, longitude, 1);
+                            String str = addressList.get(0).getLocality() + ",";
+                            str += addressList.get(0).getCountryName();
+                            mMap.addMarker(new MarkerOptions().position(latLng).title(str));
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+
+                    @Override
+                    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+                    }
+
+                    @Override
+                    public void onProviderEnabled(String provider) {
+
+                    }
+
+                    @Override
+                    public void onProviderDisabled(String provider) {
+
+                    }
+                });
+            }
+    }
+
 }
